@@ -87,26 +87,26 @@ resource "aws_s3_bucket_public_access_block" "public_access_allow" {
   restrict_public_buckets = false
 }
 
-
-resource "aws_s3_bucket_object" "lambda_deployment_package" {
+# Fixed: Changed from aws_s3_bucket_object to aws_s3_object
+resource "aws_s3_object" "lambda_deployment_package" {
   bucket = aws_s3_bucket.sagemaker_recommendation_bucket.id
   key    = "lambda/get_rec_lambda.zip"
   source = "resources/data_poisoning/get_rec_lambda.zip"
 }
 
-resource "aws_s3_bucket_object" "sagemaker_recommendation_data" {
+resource "aws_s3_object" "sagemaker_recommendation_data" {
   bucket = aws_s3_bucket.sagemaker_recommendation_bucket.id
   key    = "product_ratings.csv"
   source = "resources/data_poisoning/product_ratings.csv"
 }
 
-resource "aws_s3_bucket_object" "sagemaker_recommendation_data_solution" {
+resource "aws_s3_object" "sagemaker_recommendation_data_solution" {
   bucket = aws_s3_bucket.sagemaker_recommendation_bucket.id
   key    = "old_product_ratings.csv"
   source = "resources/data_poisoning/old_product_ratings.csv"
 }
 
-resource "aws_s3_bucket_object" "sagemaker_retraining_data" {
+resource "aws_s3_object" "sagemaker_retraining_data" {
   for_each = fileset("resources/data_poisoning/code", "**/*")
   bucket = aws_s3_bucket.sagemaker_recommendation_bucket.id
   key    = "code/${each.value}"
@@ -232,10 +232,10 @@ resource "aws_iam_role_policy" "sagemaker_additional_policy" {
   })
 }
 
-# Lambda function
+# Lambda function - Fixed: Updated reference to use aws_s3_object
 resource "aws_lambda_function" "recommendation_lambda" {
   s3_bucket        = aws_s3_bucket.sagemaker_recommendation_bucket.id
-  s3_key           = aws_s3_bucket_object.lambda_deployment_package.key
+  s3_key           = aws_s3_object.lambda_deployment_package.key
   function_name    = "recommendation-lambda"
   role             = aws_iam_role.lambda_execution_role.arn
   handler          = "lambda_function.lambda_handler"
@@ -340,13 +340,13 @@ resource "aws_security_group" "sagemaker_recommendation_sg" {
   }
 }
 
+# Fixed: Removed deprecated platform_identifier
 resource "aws_sagemaker_notebook_instance" "recommendation_notebook" {
   name                         = "recommendation-search-${random_string.suffix.result}"
   instance_type                = "ml.t2.medium"
   role_arn                     = aws_iam_role.sagemaker_recommendation_execution_role.arn
   lifecycle_config_name        = aws_sagemaker_notebook_instance_lifecycle_configuration.sagemaker_recommendation_lifecycle_config.name
   direct_internet_access       = "Enabled"
-  platform_identifier          = "notebook-al2-v1"
   subnet_id                    = var.subd_public
   security_groups              = [aws_security_group.sagemaker_recommendation_sg.id]
 }

@@ -214,7 +214,6 @@ resource "aws_sagemaker_notebook_instance" "comments_filter" {
   role_arn                     = aws_iam_role.sagemaker_execution_role.arn
   lifecycle_config_name        = aws_sagemaker_notebook_instance_lifecycle_configuration.sagemaker_lifecycle_config.name
   direct_internet_access       = "Enabled"
-  platform_identifier          = "notebook-al2-v1"
   subnet_id                    = var.subd_public
   security_groups              = [aws_security_group.sagemaker_sg.id]
 }

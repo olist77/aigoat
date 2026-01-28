@@ -24,6 +24,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.6.6
+
     - name: Set Account ID
       id: account
       run: |
